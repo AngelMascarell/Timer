@@ -66,7 +66,6 @@ button:hover {
     transform: scale(1.1);
 }
 
-
 .timer button {
     background-color: #3498db;
     color: white;
@@ -79,19 +78,21 @@ button:hover {
     background-color: #2980b9;
 }
 
-@media (max-width: 600px) {
+/* Nueva regla para cuando haya 4 jugadores */
+@media (min-width: 600px) {
     #timers {
-        flex-direction: column;
-        align-items: center;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
     }
 
     .timer {
-        width: 80%;
-        max-width: 200px;
+        width: 100%;
+        max-width: none;
     }
 
-    select, button {
-        font-size: 1rem;
-        padding: 10px;
+    /* Si son 4 jugadores, cambiar la disposición a 2 columnas */
+    #timers[data-players="4"] {
+        grid-template-columns: repeat(2, 1fr);
     }
 }

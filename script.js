@@ -8,6 +8,9 @@ function startGame() {
     const timersDiv = document.getElementById("timers");
     timersDiv.innerHTML = "";
 
+    // Establecer el número de jugadores como un atributo en el contenedor de los timers
+    timersDiv.setAttribute("data-players", playerCount);
+
     players = Array.from({ length: playerCount }, () => 300);
     currentPlayer = 0;
     isPaused = false;
@@ -28,6 +31,7 @@ function startGame() {
     highlightActivePlayer();
     startTimer();
 }
+
 
 function startTimer() {
     clearInterval(interval);
