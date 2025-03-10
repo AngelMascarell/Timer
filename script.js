@@ -5,6 +5,7 @@ let isPaused = false;
 let isGameStarted = false;
 let gameOverSound = new Audio('/music/andy.mp3');
 
+
 function startGame() {
     const playerCount = parseInt(document.getElementById("players").value);
     const timersDiv = document.getElementById("timers");
