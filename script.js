@@ -2,16 +2,21 @@ let players = [];
 let currentPlayer = 0;
 let interval;
 let isPaused = false;
+let isGameStarted = false;
+let gameOverSound = new Audio('/music/andy.mp3');
 
 function startGame() {
     const playerCount = parseInt(document.getElementById("players").value);
     const timersDiv = document.getElementById("timers");
     timersDiv.innerHTML = "";
 
-    // Establecer el número de jugadores como un atributo en el contenedor de los timers
-    timersDiv.setAttribute("data-players", playerCount);
+    const timeInput = parseInt(document.getElementById("time-input").value);
 
-    players = Array.from({ length: playerCount }, () => 300);
+    if (!isGameStarted) {
+        isGameStarted = true;
+    }
+
+    players = Array.from({ length: playerCount }, () => timeInput);
     currentPlayer = 0;
     isPaused = false;
     document.getElementById("pause-btn").textContent = "Pausar";
@@ -22,7 +27,7 @@ function startGame() {
         div.id = `player-${index}`;
         div.innerHTML = `
             <p>Jugador ${index + 1}</p>
-            <p id="time-${index}">5:00</p>
+            <p id="time-${index}">${formatTime(timeInput)}</p>
             <button onclick="changeTurn(${index})">Cambiar Turno</button>
         `;
         timersDiv.appendChild(div);
@@ -30,8 +35,9 @@ function startGame() {
 
     highlightActivePlayer();
     startTimer();
-}
 
+    timersDiv.scrollIntoView({ behavior: 'smooth' });
+}
 
 function startTimer() {
     clearInterval(interval);
@@ -41,6 +47,7 @@ function startTimer() {
             updateTimers();
         } else if (players[currentPlayer] === 0) {
             clearInterval(interval);
+            gameOverSound.play();
             alert(`¡Jugador ${currentPlayer + 1} ha perdido por tiempo!`);
         }
     }, 1000);
@@ -48,10 +55,14 @@ function startTimer() {
 
 function updateTimers() {
     players.forEach((time, index) => {
-        let minutes = Math.floor(time / 60);
-        let seconds = time % 60;
-        document.getElementById(`time-${index}`).textContent = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+        document.getElementById(`time-${index}`).textContent = formatTime(time);
     });
+}
+
+function formatTime(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 }
 
 function changeTurn(playerIndex) {
@@ -69,7 +80,10 @@ function pauseGame() {
 
 function resetGame() {
     clearInterval(interval);
-    startGame();
+    isGameStarted = false;
+    const timersDiv = document.getElementById("timers");
+    timersDiv.innerHTML = "";
+    document.getElementById("pause-btn").textContent = "Pausar";
 }
 
 function highlightActivePlayer() {

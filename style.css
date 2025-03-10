@@ -1,7 +1,7 @@
 body {
     font-family: 'Arial', sans-serif;
     text-align: center;
-    background: linear-gradient(135deg, #2c3e50, #4ca1af);
+    background: linear-gradient(135deg, #4e73df, #1e3c72);
     color: #fff;
     margin: 0;
     padding: 20px;
@@ -9,7 +9,7 @@ body {
 
 h1 {
     font-size: 2rem;
-    margin-bottom: 10px;
+    margin-bottom: 20px;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
@@ -24,6 +24,40 @@ select, button {
     width: 100%;
     max-width: 300px;
 }
+
+.time-input-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 10px;
+}
+
+label[for="time-input"] {
+    font-size: 1rem;
+    color: #fff;
+    text-align: center;
+}
+
+#time-input {
+    font-size: 1.2rem;
+    padding: 12px;
+    margin: 8px 0;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    background-color: #ecf0f1;
+    color: #333;
+    width: 100%;
+    max-width: 300px;
+    box-sizing: border-box;
+    transition: 0.3s;
+}
+
+#time-input:focus {
+    border-color: #e74c3c;
+    outline: none;
+    box-shadow: 0 0 5px rgba(231, 76, 60, 0.5);
+}
+
 
 select {
     background-color: #ecf0f1;
@@ -78,7 +112,6 @@ button:hover {
     background-color: #2980b9;
 }
 
-/* Nueva regla para cuando haya 4 jugadores */
 @media (min-width: 600px) {
     #timers {
         display: grid;
@@ -91,7 +124,6 @@ button:hover {
         max-width: none;
     }
 
-    /* Si son 4 jugadores, cambiar la disposición a 2 columnas */
     #timers[data-players="4"] {
         grid-template-columns: repeat(2, 1fr);
     }
