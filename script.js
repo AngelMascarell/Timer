@@ -7,6 +7,11 @@ let gameOverSound = new Audio('music/andy.mp3');
 let isAlertActive = false;
 let gameEnded = false;
 
+document.getElementById('players').addEventListener('change', function () {
+    const numPlayers = this.value;
+    document.getElementById('timers').setAttribute('data-players', numPlayers);
+});
+
 function startGame() {
     const playerCount = parseInt(document.getElementById("players").value);
     const timersDiv = document.getElementById("timers");
@@ -18,7 +23,7 @@ function startGame() {
         isGameStarted = true;
     }
 
-    players = Array.from({ length: playerCount }, () => timeInput);
+    players = Array.from({ length: playerCount }, () => ({ time: timeInput, active: true }));
     currentPlayer = 0;
     isPaused = false;
     document.getElementById("pause-btn").textContent = "Pausar";
@@ -47,32 +52,54 @@ function startTimer() {
 
     clearInterval(interval);
     interval = setInterval(() => {
-        if (!isPaused && players[currentPlayer] > 0) {
-            players[currentPlayer]--;
+        if (!isPaused && players[currentPlayer].time > 0) {
+            players[currentPlayer].time--;
             updateTimers();
             checkForWinner();
-        } else if (players[currentPlayer] === 0 && !isAlertActive) {
-            isAlertActive = true;
-            gameOverSound.play();
-            showAlert().then(() => {
-                gameOverSound.pause();
-                gameOverSound.currentTime = 0;
-                isAlertActive = false;
-                changeTurn();
-                startTimer();
-            });
+        } else if (players[currentPlayer].time === 0 && players[currentPlayer].active) {
+            handlePlayerLoss();
         }
     }, 1000);
 }
 
+function handlePlayerLoss() {
+    isAlertActive = true;
+    gameOverSound.play();
+
+    players[currentPlayer].active = false;
+    document.getElementById(`player-${currentPlayer}`).classList.add("eliminated");
+
+    const activePlayers = players.filter(player => player.active);
+
+    if (activePlayers.length === 1) {
+        gameOverSound.pause();
+        gameOverSound.currentTime = 0;
+        isAlertActive = false;
+        clearInterval(interval);
+        checkForWinner();
+    } else {
+        showLossAlert().then(() => {
+            gameOverSound.pause();
+            gameOverSound.currentTime = 0;
+            isAlertActive = false;
+
+            moveToNextPlayer();
+            highlightActivePlayer();
+            startTimer();
+        });
+    }
+}
+
+
+
 function checkForWinner() {
-    const playersWithTime = players.filter(playerTime => playerTime > 0);
+    const activePlayers = players.filter(player => player.active);
     
-    if (playersWithTime.length === 1 && !gameEnded) {
-        const winnerIndex = players.indexOf(playersWithTime[0]);
+    if (activePlayers.length === 1 && !gameEnded) {
+        const winnerIndex = players.findIndex(player => player.active);
         gameEnded = true;
         clearInterval(interval);
-        
+
         if (!gameOverSound.paused) {
             gameOverSound.pause();
             gameOverSound.currentTime = 0;
@@ -80,19 +107,39 @@ function checkForWinner() {
         gameOverSound.play();
 
         setTimeout(() => {
-            alert(`¡Jugador ${winnerIndex + 1} es el ganador!`);
-            gameOverSound.pause();
-            resetGame();
+            showWinnerAlert(winnerIndex);
         }, 1000);
     }
 }
 
+function showWinnerAlert(winnerIndex) {
+    return new Promise((resolve) => {
+        gameOverSound.play();
+        const alertDiv = document.createElement("div");
+        alertDiv.classList.add("alert");
+        alertDiv.innerHTML = ` 
+            <div class="alert-box">
+                <p>¡Jugador ${winnerIndex + 1} es el ganador!</p>
+                <button id="alert-accept-btn">Aceptar</button>
+            </div>
+        `;
+        document.body.appendChild(alertDiv);
 
-function showAlert() {
+        document.getElementById("alert-accept-btn").addEventListener("click", () => {
+            alertDiv.remove();
+            gameOverSound.pause();
+            gameOverSound.currentTime = 0;
+            resolve();
+            resetGame();
+        });
+    });
+}
+
+function showLossAlert() {
     return new Promise((resolve) => {
         const alertDiv = document.createElement("div");
         alertDiv.classList.add("alert");
-        alertDiv.innerHTML = `
+        alertDiv.innerHTML = ` 
             <div class="alert-box">
                 <p>¡Jugador ${currentPlayer + 1} ha perdido por tiempo!</p>
                 <button id="alert-accept-btn">Aceptar</button>
@@ -100,17 +147,30 @@ function showAlert() {
         `;
         document.body.appendChild(alertDiv);
 
-        const acceptButton = document.getElementById("alert-accept-btn");
-        acceptButton.addEventListener("click", () => {
+        document.getElementById("alert-accept-btn").addEventListener("click", () => {
             alertDiv.remove();
             resolve();
         });
     });
 }
 
+function moveToNextPlayer() {
+    let originalPlayer = currentPlayer;
+    do {
+        currentPlayer = (currentPlayer + 1) % players.length;
+    } while (!players[currentPlayer].active && currentPlayer !== originalPlayer);
+
+    if (!players[currentPlayer].active) {
+        clearInterval(interval);
+        gameEnded = true;
+    }
+}
+
 function updateTimers() {
-    players.forEach((time, index) => {
-        document.getElementById(`time-${index}`).textContent = formatTime(time);
+    players.forEach((player, index) => {
+        if (player.active) {
+            document.getElementById(`time-${index}`).textContent = formatTime(player.time);
+        }
     });
 }
 
@@ -121,9 +181,9 @@ function formatTime(seconds) {
 }
 
 function changeTurn(playerIndex) {
-    if (playerIndex !== currentPlayer || isPaused || gameEnded) return;
+    if (playerIndex !== currentPlayer || isPaused || gameEnded || !players[currentPlayer].active) return;
 
-    currentPlayer = (currentPlayer + 1) % players.length;
+    moveToNextPlayer();
     highlightActivePlayer();
     startTimer();
 }
@@ -138,13 +198,16 @@ function resetGame() {
     clearInterval(interval);
     isGameStarted = false;
     gameEnded = false;
-    const timersDiv = document.getElementById("timers");
-    timersDiv.innerHTML = "";
+    document.getElementById("timers").innerHTML = "";
     document.getElementById("pause-btn").textContent = "Pausar";
 }
 
 function highlightActivePlayer() {
     document.querySelectorAll(".timer").forEach((el, index) => {
-        el.classList.toggle("active", index === currentPlayer);
+        if (players[index].active) {
+            el.classList.toggle("active", index === currentPlayer);
+        } else {
+            el.classList.add("eliminated");
+        }
     });
 }

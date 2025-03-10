@@ -18,11 +18,10 @@
         </select>
     </div>
     
-
     <div class="time-input-container">
         <label for="time-input">Tiempo inicial:</label>
         <select id="time-input">
-            <option value="5">1 minuto</option>
+            <option value="3">1 minuto</option>
             <option value="120">2 minutos</option>
             <option value="180">3 minutos</option>
             <option value="240">4 minutos</option>
@@ -39,9 +38,8 @@
     <button id="pause-btn" onclick="pauseGame()">Pausar</button>
     <button onclick="resetGame()">Reiniciar</button>
 
-    <div id="timers"></div>
+    <div id="timers" data-players="2"></div>
 
     <script src="script.js"></script>
-
 </body>
 </html>
